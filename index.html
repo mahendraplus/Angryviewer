@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IP Scanner Results Viewer | Created by mahendraplus.github.io</title>
+    <style>
+        :root {
+            --primary-color: #4285f4;
+            --secondary-color: #f1f3f4;
+            --text-color: #202124;
+            --border-color: #dadce0;
+            --success-color: #34a853;
+            --warning-color: #fbbc05;
+            --error-color: #ea4335;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
+        
+        body {
+            background-color: #f8f9fa;
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 15px 0;
+            margin-bottom: 30px;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        h1 {
+            color: var(--primary-color);
+            font-size: 24px;
+            font-weight: 500;
+        }
+        
+        .logo {
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #3367d6;
+        }
+        
+        .btn-secondary {
+            background-color: var(--secondary-color);
+            color: var(--text-color);
+        }
+        
+        .btn-secondary:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .status.success {
+            background-color: #e6f4ea;
+            color: var(--success-color);
+            display: block;
+        }
+        
+        .status.error {
+            background-color: #fce8e6;
+            color: var(--error-color);
+            display: block;
+        }
+        
+        .filter-controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-input {
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 14px;
+            flex-grow: 1;
+            min-width: 200px;
+        }
+        
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        .page-btn {
+            padding: 8px 12px;
+            min-width: 40px;
+            text-align: center;
+        }
+        
+        .page-btn.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card-header {
+            padding: 12px 15px;
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .card-title {
+            font-weight: 500;
+            font-size: 16px;
+        }
+        
+        .card-badge {
+            background-color: rgba(255, 255, 255, 0.2);
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+        
+        .card-body {
+            padding: 15px;
+        }
+        
+        .card-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        
+        .card-info-label {
+            color: #5f6368;
+            font-weight: 500;
+        }
+        
+        .iframe-container {
+            position: relative;
+            width: 100%;
+            height: 250px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .iframe-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        .iframe-placeholder {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            background-color: var(--secondary-color);
+            color: #5f6368;
+            font-size: 14px;
+        }
+        
+        .loading {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+        
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top: 4px solid var(--primary-color);
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px 0;
+            color: #5f6368;
+            font-size: 14px;
+            border-top: 1px solid var(--border-color);
+            margin-top: 30px;
+        }
+        
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                gap: 10px;
+                text-align: center;
+            }
+            
+            .controls {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container header-content">
+            <h1><span class="logo">IP Scanner Results Viewer</span></h1>
+            <div>Created by <a href="https://mahendraplus.github.io" target="_blank">mahendraplus.github.io</a></div>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div class="controls">
+            <button id="loadFileBtn" class="btn btn-primary">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="17 8 12 3 7 8"></polyline>
+                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+                Load scan.txt
+            </button>
+            <input type="file" id="fileInput" class="file-input" accept=".txt">
+            <button id="reloadBtn" class="btn btn-secondary" disabled>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21.5 2v6h-6M2.5 22v-6h6M22 11.5a10 10 0 0 1-10 10 10 10 0 0 1-10-10 10 10 0 0 1 10-10 10 10 0 0 1 10 10z"></path>
+                </svg>
+                Reload Data
+            </button>
+        </div>
+        
+        <div id="status" class="status"></div>
+        
+        <div class="filter-controls">
+            <input type="text" id="ipFilter" class="filter-input" placeholder="Filter by IP...">
+            <input type="text" id="portFilter" class="filter-input" placeholder="Filter by port...">
+            <select id="httpFilter" class="filter-input">
+                <option value="all">All protocols</option>
+                <option value="http">HTTP only</option>
+                <option value="https">HTTPS only</option>
+            </select>
+        </div>
+        
+        <div id="grid" class="grid"></div>
+        
+        <div class="pagination" id="pagination">
+            <!-- Pagination buttons will be added here -->
+        </div>
+    </div>
+    
+    <footer>
+        <div class="container">
+            <p>IP Scanner Results Viewer - Professional tool for viewing Angry IP Scanner results</p>
+            <p>Data is processed locally in your browser - no server interaction required</p>
+        </div>
+    </footer>
+    
+    <script>
+        // Global variables
+        let scanData = [];
+        let filteredData = [];
+        let currentPage = 1;
+        const itemsPerPage = 12;
+        
+        // DOM elements
+        const loadFileBtn = document.getElementById('loadFileBtn');
+        const fileInput = document.getElementById('fileInput');
+        const reloadBtn = document.getElementById('reloadBtn');
+        const statusDiv = document.getElementById('status');
+        const ipFilter = document.getElementById('ipFilter');
+        const portFilter = document.getElementById('portFilter');
+        const httpFilter = document.getElementById('httpFilter');
+        const grid = document.getElementById('grid');
+        const pagination = document.getElementById('pagination');
+        
+        // Event listeners
+        loadFileBtn.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', handleFileUpload);
+        reloadBtn.addEventListener('click', reloadData);
+        ipFilter.addEventListener('input', applyFilters);
+        portFilter.addEventListener('input', applyFilters);
+        httpFilter.addEventListener('input', applyFilters);
+        
+        // Functions
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const content = e.target.result;
+                    parseScanData(content);
+                    showStatus('File loaded successfully!', 'success');
+                    reloadBtn.disabled = false;
+                } catch (error) {
+                    showStatus('Error parsing file: ' + error.message, 'error');
+                    console.error(error);
+                }
+            };
+            reader.readAsText(file);
+        }
+        
+        function parseScanData(content) {
+            const lines = content.split('\n');
+            scanData = [];
+            
+            // Find the line with the header to determine column positions
+            let headerIndex = -1;
+            for (let i = 0; i < lines.length; i++) {
+                if (lines[i].includes('IP') && lines[i].includes('Ping') && lines[i].includes('Hostname') && lines[i].includes('Ports')) {
+                    headerIndex = i;
+                    break;
+                }
+            }
+            
+            if (headerIndex === -1) {
+                throw new Error('Invalid file format - header not found');
+            }
+            
+            // Process data lines
+            for (let i = headerIndex + 1; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+                
+                // Split by multiple spaces
+                const parts = line.split(/\s+/).filter(part => part.trim() !== '');
+                
+                if (parts.length < 4) continue;
+                
+                const ip = parts[0];
+                const ping = parts[1];
+                const hostname = parts[2] === '[n/a]' ? null : parts[2];
+                let ports = parts[3];
+                
+                // Handle cases where ports might be merged with other columns
+                if (parts.length > 4) {
+                    for (let j = 4; j < parts.length; j++) {
+                        ports += ',' + parts[j];
+                    }
+                }
+                
+                // Clean up ports
+                ports = ports.split(',').map(port => {
+                    // Remove non-numeric characters
+                    const cleanPort = port.replace(/\D/g, '');
+                    return cleanPort ? parseInt(cleanPort) : null;
+                }).filter(port => port !== null);
+                
+                scanData.push({
+                    ip,
+                    ping,
+                    hostname,
+                    ports
+                });
+            }
+            
+            // Store the parsed data in localStorage for reloading
+            localStorage.setItem('ipScanData', JSON.stringify(scanData));
+            
+            applyFilters();
+        }
+        
+        function reloadData() {
+            const savedData = localStorage.getItem('ipScanData');
+            if (savedData) {
+                try {
+                    scanData = JSON.parse(savedData);
+                    applyFilters();
+                    showStatus('Data reloaded successfully!', 'success');
+                } catch (error) {
+                    showStatus('Error reloading data: ' + error.message, 'error');
+                }
+            } else {
+                showStatus('No saved data found', 'error');
+            }
+        }
+        
+        function applyFilters() {
+            const ipFilterValue = ipFilter.value.toLowerCase();
+            const portFilterValue = portFilter.value;
+            const httpFilterValue = httpFilter.value;
+            
+            filteredData = scanData.filter(item => {
+                // IP filter
+                if (ipFilterValue && !item.ip.toLowerCase().includes(ipFilterValue)) {
+                    return false;
+                }
+                
+                // Port filter
+                if (portFilterValue) {
+                    const portFound = item.ports.some(port => port.toString().includes(portFilterValue));
+                    if (!portFound) return false;
+                }
+                
+                // HTTP/HTTPS filter
+                if (httpFilterValue !== 'all') {
+                    const hasHttp = item.ports.includes(80);
+                    const hasHttps = item.ports.includes(443);
+                    
+                    if (httpFilterValue === 'http' && !hasHttp) return false;
+                    if (httpFilterValue === 'https' && !hasHttps) return false;
+                }
+                
+                return true;
+            });
+            
+            currentPage = 1;
+            renderGrid();
+            renderPagination();
+        }
+        
+        function renderGrid() {
+            grid.innerHTML = '';
+            
+            if (filteredData.length === 0) {
+                grid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #5f6368;">No devices found matching your filters</div>';
+                pagination.innerHTML = '';
+                return;
+            }
+            
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = Math.min(startIndex + itemsPerPage, filteredData.length);
+            const pageData = filteredData.slice(startIndex, endIndex);
+            
+            pageData.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                
+                // Determine primary protocol
+                const hasHttp = item.ports.includes(80);
+                const hasHttps = item.ports.includes(443);
+                const primaryProtocol = hasHttps ? 'https' : hasHttp ? 'http' : null;
+                const primaryPort = hasHttps ? 443 : hasHttp ? 80 : item.ports[0];
+                
+                card.innerHTML = `
+                    <div class="card-header">
+                        <div class="card-title">${item.ip}</div>
+                        <div class="card-badge">${item.ping}</div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-info">
+                            <span class="card-info-label">Hostname:</span>
+                            <span>${item.hostname || 'N/A'}</span>
+                        </div>
+                        <div class="card-info">
+                            <span class="card-info-label">Ports:</span>
+                            <span>${item.ports.join(', ')}</span>
+                        </div>
+                        
+                        <div class="iframe-container" id="iframe-${item.ip.replace(/\./g, '-')}">
+                            ${primaryProtocol ? `
+                                <iframe src="${primaryProtocol}://${item.ip}:${primaryPort}" frameborder="0" loading="lazy"></iframe>
+                                <div class="loading">
+                                    <div class="spinner"></div>
+                                </div>
+                            ` : `
+                                <div class="iframe-placeholder">
+                                    No HTTP/HTTPS port available
+                                </div>
+                            `}
+                        </div>
+                    </div>
+                `;
+                
+                grid.appendChild(card);
+                
+                // Add event listener to hide loading spinner when iframe loads
+                if (primaryProtocol) {
+                    const iframeContainer = card.querySelector('.iframe-container');
+                    const iframe = iframeContainer.querySelector('iframe');
+                    const loading = iframeContainer.querySelector('.loading');
+                    
+                    iframe.addEventListener('load', () => {
+                        loading.style.display = 'none';
+                    });
+                    
+                    // Also hide loading after timeout in case iframe fails to load
+                    setTimeout(() => {
+                        loading.style.display = 'none';
+                    }, 10000);
+                }
+            });
+        }
+        
+        function renderPagination() {
+            pagination.innerHTML = '';
+            
+            const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+            if (totalPages <= 1) return;
+            
+            // Previous button
+            const prevBtn = document.createElement('button');
+            prevBtn.className = 'btn btn-secondary page-btn';
+            prevBtn.innerHTML = '&laquo;';
+            prevBtn.disabled = currentPage === 1;
+            prevBtn.addEventListener('click', () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    renderGrid();
+                    renderPagination();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+            });
+            pagination.appendChild(prevBtn);
+            
+            // Page buttons
+            const maxVisiblePages = 5;
+            let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+            let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+            
+            if (endPage - startPage + 1 < maxVisiblePages) {
+                startPage = Math.max(1, endPage - maxVisiblePages + 1);
+            }
+            
+            if (startPage > 1) {
+                const firstBtn = document.createElement('button');
+                firstBtn.className = 'btn btn-secondary page-btn';
+                firstBtn.textContent = '1';
+                firstBtn.addEventListener('click', () => {
+                    currentPage = 1;
+                    renderGrid();
+                    renderPagination();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                });
+                pagination.appendChild(firstBtn);
+                
+                if (startPage > 2) {
+                    const ellipsis = document.createElement('span');
+                    ellipsis.className = 'page-ellipsis';
+                    ellipsis.textContent = '...';
+                    pagination.appendChild(ellipsis);
+                }
+            }
+            
+            for (let i = startPage; i <= endPage; i++) {
+                const pageBtn = document.createElement('button');
+                pageBtn.className = `btn ${i === currentPage ? 'btn-primary active' : 'btn-secondary'} page-btn`;
+                pageBtn.textContent = i;
+                pageBtn.addEventListener('click', () => {
+                    currentPage = i;
+                    renderGrid();
+                    renderPagination();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                });
+                pagination.appendChild(pageBtn);
+            }
+            
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    const ellipsis = document.createElement('span');
+                    ellipsis.className = 'page-ellipsis';
+                    ellipsis.textContent = '...';
+                    pagination.appendChild(ellipsis);
+                }
+                
+                const lastBtn = document.createElement('button');
+                lastBtn.className = 'btn btn-secondary page-btn';
+                lastBtn.textContent = totalPages;
+                lastBtn.addEventListener('click', () => {
+                    currentPage = totalPages;
+                    renderGrid();
+                    renderPagination();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                });
+                pagination.appendChild(lastBtn);
+            }
+            
+            // Next button
+            const nextBtn = document.createElement('button');
+            nextBtn.className = 'btn btn-secondary page-btn';
+            nextBtn.innerHTML = '&raquo;';
+            nextBtn.disabled = currentPage === totalPages;
+            nextBtn.addEventListener('click', () => {
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    renderGrid();
+                    renderPagination();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+            });
+            pagination.appendChild(nextBtn);
+        }
+        
+        function showStatus(message, type) {
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${type}`;
+            
+            // Hide status after 5 seconds
+            setTimeout(() => {
+                statusDiv.style.opacity = '0';
+                setTimeout(() => {
+                    statusDiv.className = 'status';
+                    statusDiv.style.opacity = '1';
+                }, 500);
+            }, 5000);
+        }
+        
+        // Check for saved data on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedData = localStorage.getItem('ipScanData');
+            if (savedData) {
+                try {
+                    scanData = JSON.parse(savedData);
+                    filteredData = [...scanData];
+                    reloadBtn.disabled = false;
+                    renderGrid();
+                    renderPagination();
+                } catch (error) {
+                    console.error('Error loading saved data:', error);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
